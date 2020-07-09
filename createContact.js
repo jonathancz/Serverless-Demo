@@ -1,18 +1,37 @@
-'use strict';
+const { request, response, logger } = require('@cot/lambda-helpers')
+const AWS = require('aws-sdk')
+const cuid = require('cuid')
 
 module.exports.handler = async event => {
-  return {
-    statusCode: 200,
-    body: JSON.stringify(
-      {
-        message: 'Go Serverless v1.0! Your function executed successfully!',
-        input: `Hello, World! ${event.body}`,
-      },
-      null,
-      2
-    ),
-  };
+  const log = logger()
+  try{
+    if(!event.body) {
+      return response.error('Missing event body', 400)
+    }
+    const {name, lastName, phoneNumber} = JSON.parse(event.body)
 
-  // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-  // return { message: 'Go Serverless v1.0! Your function executed successfully!', event };
-};
+    if(!(name && lastName && phoneNumber)) {
+      return response.error('Missing Parameters', 400)
+    }
+    const contactId = cuid()
+    const item = {
+      ...JSON.parse(event.body),
+      id: contactId
+    }
+
+    log.progress('Inserting item into Dynamo')
+    const dynamodb = new AWS.DynamoDB.DocumentClient()
+    const dynamoParams = {
+      TableName: process.env.CONTACTS_TABLE_NAME,
+      Item: item
+    }
+    await dynamodb.put(dynamoParams).promise()
+
+    return response.success({
+      id:contactId
+    })
+  } catch(error) {
+    log.error('something went wrong in `postContacts`, message: ', error)
+    return response.error('Something went wrong')
+  }
+}
