@@ -25,6 +25,12 @@ functions:
       - http:
           path: contacts
           method: post
+  listContact:
+    handler: listContact.handler
+    events:
+      - http:
+          path: contacts
+          method: get
 
 resources:
  Resources:
