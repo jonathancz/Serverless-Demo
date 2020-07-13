@@ -4,20 +4,16 @@ const AWS = require('aws-sdk')
 module.exports.handler = async event => {
   const log = logger()
   try{
-    const item = {
-        ...JSON.parse(event.body),
-      }
-
-    log.progress('Scanning items from Dynamo')
+    const tableName = process.env.CONTACTS_TABLE_NAME
     const dynamodb = new AWS.DynamoDB.DocumentClient()
-    const dynamoParams = {
-        TableName: process.env.CONTACTS_TABLE_NAME,
-        Item: item
-      }
-    await dynamodb.scan(dynamoParams).promise()
-    return response.success({
-        id:contactId
-      })
+
+    var params = {
+        TableName: tableName,
+    }
+
+    console.log('Scanning contacts table')
+    const result = await dynamodb.scan(params).promise()
+    return response.success(result.Items)
   } catch(error) {
     log.error('something went wrong in `getContacts`, message: ', error)
     return response.error('Something went wrong')
