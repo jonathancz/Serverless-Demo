@@ -15,6 +15,8 @@ provider:
       Action:
         - dynamodb:PutItem
         - dynamodb:Scan
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
       Resource: 
       - Fn::GetAtt: [ contactsTable, Arn ]
 
@@ -31,6 +33,12 @@ functions:
       - http:
           path: contacts
           method: get
+  deleteContact:
+    handler: deleteContact.handler
+    events:
+      - http:
+          path: contacts
+          method: delete
 
 resources:
  Resources:

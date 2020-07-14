@@ -1,0 +1,24 @@
+const { request, response, logger } = require('@cot/lambda-helpers')
+const AWS = require('aws-sdk')
+
+module.exports.handler = async event => {
+  const log = logger()
+  try{
+    const tableName = process.env.CONTACTS_TABLE_NAME
+    const dynamodb = new AWS.DynamoDB.DocumentClient()
+
+    var params = {
+        Key: {
+            id: id
+        },
+        TableName: tableName,
+    }
+
+    console.log('Scanning contacts table')
+    const result = await dynamodb.delete(params).promise()
+    return response.success(result.Items)
+  } catch(error) {
+    log.error('something went wrong in `getContacts`, message: ', error)
+    return response.error('Something went wrong')
+  }
+}
